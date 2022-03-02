@@ -124,13 +124,16 @@ int main(int argc, char **argv) {
 	       vect_remove_last(tmp);
 	       j--;
 	     }
-           } else {
+           }
+       else if(strcmp(vect_get(args, i), "|") == 0) {
+       }
+           else {
 	     vect_add(tmp, vect_get(args, i));
 	   }
 	 }
 
          // vect_print(last_args);
-         shell(tmp, last_args); // run the shell
+        shell(tmp, last_args); // run the shell
 	 last_args = tmp;
       }
     }
