@@ -32,6 +32,23 @@ char* read_string(const char* c, int idx) {
 }
 
 // handles reading regular arguments that arent strings or special characters.
+void del(char str[], char ch) {
+   int i, j = 0;
+   int size;
+   char ch1;
+   char str1[255];
+ 
+   size = strlen(str);
+ 
+   for (i = 0; i < size; i++) {
+      if (str[i] != ch) {
+         ch1 = str[i];
+         str1[j] = ch1;
+         j++;
+      }
+   }
+   str1[j] = '\0';
+}
 // it then tokenizes what it reads from c up until the next space, double quote, or special character
 char* read_else(const char* c, int idx) {
   int counter = 0;
@@ -45,10 +62,9 @@ char* read_else(const char* c, int idx) {
   token[counter] = 0;
   return token;
 }
-
 // tokenizes a line (given presumably by stdin) and returns a vector of each of the individual tokens.
 vect_t* tokenize(char* line) {
-
+  del(line, '\n');	
   vect_t *v = vect_new(); // create a new vector
 
   int i = 0;
