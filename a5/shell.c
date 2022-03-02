@@ -26,12 +26,15 @@ int execute(vect_t *args) {
     }
     exit(0);
 }
+
 int cd (vect_t *args) {
-    if (vect_get(args, 1) != 0) {
-      perror("shell $");
+    if (vect_size(args) == 1) {
+	return(chdir(getenv("HOME")));
+    } else {
+	return(chdir(vect_get(args, 1)));
     }
-  return 1;
 }
+
 #define linemax 256
 int source (vect_t *args) {
     FILE *f = fopen(vect_get(args,1), "r");
@@ -46,9 +49,12 @@ int source (vect_t *args) {
     fclose(f);
     exit(EXIT_SUCCESS);
 }
+
 int prev (vect_t *args, vect_t *last) {
-shell(last, last);
+  shell(last, last);
 }
+
+
 int help (vect_t *args) {
 printf("cd\n"
         "This command should change the current working directory of the shell.\n"
@@ -63,20 +69,20 @@ printf("cd\n"
 }
 
 // run the shell's child processes
-void shell(vect_t *args, vect_t *last) {
+int shell(vect_t *args, vect_t *last) {
   // if we want to exit the shell then do
   if(strcmp(vect_get(args, 0), "exit") == 0) {
     printf("Bye bye.\n");
     exit(0);
   }
   if(strcmp(vect_get(args, 0), "cd") == 0) {
-    cd(args);
+     return cd(args);
   }
   if(strcmp(vect_get(args, 0), "source") == 0) {
     source(args);
   }
   if(strcmp(vect_get(args, 0), "prev") == 0) {
-    prev(args, last);
+    return prev(args, last);
   }
   if(strcmp(vect_get(args, 0), "help") == 0) {
     help(args);
@@ -94,20 +100,38 @@ void shell(vect_t *args, vect_t *last) {
 int main(int argc, char **argv) {
     char commands[max]; // set up command line length
     vect_t *args; // initialize vector for tokens
-    
+    vect_t *last_args = vect_new();
     if(1 == argc) { // we just have "./shell"
       printf("Welcome to mini-shell.\n");
       while(1) { // while true
          printf("shell $ "); // print shell prompt
-         char* lastline = commands;
          char* line = fgets(commands, max, stdin); // get input from stdin
          if(!line) { // if we dont have a line then we're done
            printf("\nBye bye.\n"); // print bye bye on a new line
            exit(0); // exit
          }
          args = tokenize(commands); // tokenize the commands
-         shell(args, tokenize(lastline)); // run the shell
-         vect_delete(args); // free our vector
+
+	// start handling semicolons here
+	
+	 vect_t *tmp = vect_new();
+
+	 for(int i = 0; i < vect_size(args); i++) {
+	   if(strcmp(vect_get(args, i), ";") == 0) { // if the thing at i is a semi colon
+	     shell(tmp, last_args); // run the shell with the commands we have
+	     int j = vect_size(tmp);
+	     while (j != 0) {
+	       vect_remove_last(tmp);
+	       j--;
+	     }
+           } else {
+	     vect_add(tmp, vect_get(args, i));
+	   }
+	 }
+
+         // vect_print(last_args);
+         shell(tmp, last_args); // run the shell
+	 last_args = tmp;
       }
     }
     return 0;
