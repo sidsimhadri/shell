@@ -10,6 +10,15 @@ int isSpecial(char c) {
   return ((c == ';') || (c == '<') || (c == '>') || (c == '(') || (c == ')') || (c == '|')) ? 1 : 0;
 }
 
+void removeSubstr (char *string, char *sub) {
+    char *match;
+    int len = strlen(sub);
+    while ((match = strstr(string, sub))) {
+        *match = '\0';
+        strcat(string, match+len);
+    }
+}
+
 // handles interpreting a portion of the stdin line a const char 
 // c and then interperets the special token at the index
 char* read_special(const char* c, int idx) {
@@ -98,5 +107,9 @@ vect_t* tokenize(char* line) {
       i += strlen(relse); // increment by how long said token was
       free(relse); // free temporary token variable
   }
+  const char *el = vect_get(v, vect_size(v) - 1);
+  removeSubstr(el, "\n");
+  vect_remove_last(v);
+  vect_add(v, el); 
   return v;
 }
