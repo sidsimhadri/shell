@@ -15,6 +15,26 @@
 int shell(vect_t *args, vect_t *colon, vect_t *last, char *infile, char *outfile);
 void processargs(vect_t *args, vect_t *last_args, char *in, char *out);
 
+void strip(char * str, char c){
+    int i, j;
+    int len = strlen(str);
+    i = 0;
+    while(i<len)
+    {
+        if(str[i] == c)
+        {
+            for(j=i; j<len; j++)
+            {
+                str[j] = str[j+1];
+            }
+            len--;
+            i--;
+        }
+        i++;
+    }
+
+}
+
 // executes the vector of arguments
 int execute(vect_t *args) {
   char* arr[vect_size(args)]; // set the size of the array
@@ -235,10 +255,10 @@ int main(int argc, char **argv) {
            }
            else {
          int i = 0;
-//          while (i < vect_size(args)) {
-//             vect_set(args, i, strcspn(vect_get(args, i),"\n" ));
-//             i++;
-//             }
+          while (i < vect_size(args)) {
+             strip(vect_get(args, i),"\n" );
+             i++;
+             }
 
 	      processargs(args, last_args, NULL, NULL);
 	      }
