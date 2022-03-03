@@ -116,11 +116,11 @@ int shell(vect_t *args, vect_t *args2, vect_t *last, char *infile, char *outfile
     execute(args); // execute the arguments
                          // wait on the status to finish
   } else {
-    int status;
-    waitpid(cpid, &status, 0);
-    if(args2) {
-    processargs(args2, args, NULL, NULL);
-    }
+        int status;
+        waitpid(cpid, &status, 0);
+        if(args2) {
+            processargs(args2, args, NULL, NULL);
+        }
   }
 }
 int piper(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
@@ -170,12 +170,12 @@ void processargs(vect_t *args, vect_t *last_args, char *in, char *out) {
 	 vect_t *tmp2 = vect_new();
 	 for(int i = 0; i < vect_size(args); i++) {
         if(strcmp(vect_get(args, i), "<") == 0) { // if the thing at i is a semi colon
-          processargs(args, last_args, vect_get(args, i + 1), out);
+          shell(args, NULL, last_args, vect_get(args, i + 1), out);
           i++;
         }
 
         if(strcmp(vect_get(args, i), ">") == 0) { // if the thing at i is a semi colon
-          processargs(args, last_args, in, vect_get_copy(args, i + 1));
+          shell(args, NULL, last_args, in, vect_get_copy(args, i + 1));
           i++;
         }
 	   if(strcmp(vect_get(args, i), ";") == 0) { // if the thing at i is a semi colon
