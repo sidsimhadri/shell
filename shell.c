@@ -45,7 +45,7 @@ int source (vect_t *args) {
     command = fscanf(f, "%[^\n]", f);
     while (command != 0) {
         printf("> %s\n", command);
-	shell(tokenize(command), tokenize(last), NULL, NULL);
+	    shell(tokenize(command), tokenize(last), NULL, NULL);
     }
 
     fclose(f);
@@ -130,9 +130,52 @@ int shell(vect_t *args, vect_t *last, char *infile, char *outfile) {
 }
 
 
-int colon(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
-processargs(args1, last, in, out);
-processargs(args2, last, in, out);
+int colon(vect_t *args1, vect_t *args2, vect_t *last, char *infile, char *outfile) {
+       pid_t a, b;
+       a = fork();
+      int cpid = fork(); // fork
+      int in;
+      int out;
+      if(a == 0) {
+        if(infile) {
+            // Close standard in
+            if (close(0) == -1) {
+              perror("Error closing stdin");
+              exit(1);
+            }
+
+
+            // Open the file for reading
+            in = open(infile, O_RDONLY);
+
+            // The open file should replace standard in
+            assert(in == 0);
+        }
+        if(outfile) {
+            // Close standard out
+            if (close(1) == -1) {
+              perror("Error closing stdout");
+              exit(1);
+            }
+
+            // Create the file, truncate it if it exists
+            out = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+            // The open file should replace standard out
+            assert(out == 1);
+        }
+        //i switched execute and waitpid's location
+        execute(args1); // execute the arguments
+                             // wait on the status to finish
+      } else {
+        int statusa, statusb;
+        waitpid(a, &statusa, 0);
+        b = fork();
+        if(b == 0) {
+            processargs(args2, args1, NULL, NULL);
+        }
+        waitpid(b, &statusb, 0);
+      }
 }
 
 int piper(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
