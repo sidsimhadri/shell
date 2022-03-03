@@ -283,11 +283,11 @@ int main(int argc, char **argv) {
            exit(0); // exit
          }
          args = tokenize(commands); // tokenize the commands
-         int i = 0;
-          while (i < vect_size(args)) {
-             vect_set(args, i, strcspn(vect_get(args, i),"\n" ));
-             i++;
-             }
+//         int i = 0;
+//          while (i < vect_size(args)) {
+//             vect_set(args, i, strcspn(vect_get(args, i),"\n" ));
+//             i++;
+//             }
 
 	      processargs(args, last_args, NULL, NULL);
       }
