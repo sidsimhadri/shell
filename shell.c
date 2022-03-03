@@ -235,10 +235,10 @@ int main(int argc, char **argv) {
            }
            else {
          int i = 0;
-          while (i < vect_size(args)) {
-             vect_set(args, i, strcspn(vect_get(args, i),"\n" ));
-             i++;
-             }
+//          while (i < vect_size(args)) {
+//             vect_set(args, i, strcspn(vect_get(args, i),"\n" ));
+//             i++;
+//             }
 
 	      processargs(args, last_args, NULL, NULL);
 	      }
