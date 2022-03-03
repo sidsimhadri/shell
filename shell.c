@@ -7,10 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include "vect.h"
 #include "tokenizer.h"
 
 #define max 255
+int shell(vect_t *args, vect_t *last, char *infile, char *outfile);
+void processargs(vect_t *args, vect_t *last_args, char *in, char *out);
 
 // executes the vector of arguments
 int execute(vect_t *args) {
@@ -34,7 +37,6 @@ int cd (vect_t *args) {
 	return(chdir(vect_get(args, 1)));
     }
 }
-
 #define linemax 256
 int source (vect_t *args) {
     FILE *f = fopen(vect_get(args,1), "r");
@@ -43,7 +45,7 @@ int source (vect_t *args) {
     command = fscanf(f, "%[^\n]", f);
     while (command != 0) {
         printf("> %s\n", command);
-	shell(tokenize(command), tokenize(last));
+	shell(tokenize(command), tokenize(last), NULL, NULL);
     }
 
     fclose(f);
@@ -51,7 +53,7 @@ int source (vect_t *args) {
 }
 
 int prev (vect_t *args, vect_t *last) {
-  shell(last, last);
+  shell(last, last, NULL, NULL);
 }
 
 
@@ -127,12 +129,13 @@ int shell(vect_t *args, vect_t *last, char *infile, char *outfile) {
   }
 }
 
+
 int colon(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
 processargs(args1, last, in, out);
 processargs(args2, last, in, out);
 }
 
-int pipe(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
+int piper(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
 
     pid_t a, b;
 
@@ -167,29 +170,28 @@ int pipe(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
               }
               execute(args2);
               int status1;
-              waitpid(cpid, &status1, 0);
+              waitpid(b, &status1, 0);
 
         }
 
         else {
             int status2;
-            waitpid(cpid, &status2, 0);
+            waitpid(a, &status2, 0);
         }
 
 }
-
 // handles semicolons, etc
-void processargs(vect_t *tokens, vect_t *last_args, char *in, char *out) {
+void processargs(vect_t *args, vect_t *last_args, char *in, char *out) {
 	 vect_t *tmp = vect_new();
 	 vect_t *tmp2 = vect_new();
 	 for(int i = 0; i < vect_size(args); i++) {
         if(strcmp(vect_get(args, i), "<") == 0) { // if the thing at i is a semi colon
-          processargs(args, last_args, vect_get(args + 1), out);
+          processargs(args, last_args, vect_get(args, i + 1), out);
           i++;
         }
 
         if(strcmp(vect_get(args, i), ">") == 0) { // if the thing at i is a semi colon
-          processargs(args, last_args, in, vect_get(args + 1));
+          processargs(args, last_args, in, vect_get_copy(args, i + 1));
           i++;
         }
 	   if(strcmp(vect_get(args, i), ";") == 0) { // if the thing at i is a semi colon
@@ -202,7 +204,7 @@ void processargs(vect_t *tokens, vect_t *last_args, char *in, char *out) {
 	   }
        if(strcmp(vect_get(args, i), "|") == 0) { // if the thing at i is a semi colon
          vect_add(tmp, vect_get(args, i));
-         pipe(tmp, tmp2, last_args, infile, outfile);
+         piper(tmp, tmp2, last_args, in, out);
          tmp = NULL;
        }
        else {
@@ -212,7 +214,7 @@ void processargs(vect_t *tokens, vect_t *last_args, char *in, char *out) {
 
 	 }
      if(tmp != NULL) {
-          shell(tokens, last_args, in, out);
+          shell(args, last_args, in, out);
      }
 
 }
@@ -232,7 +234,7 @@ int main(int argc, char **argv) {
          }
          args = tokenize(commands); // tokenize the commands
 
-	processargs(args, last_args);
+	processargs(args, last_args, NULL, NULL);
       }
     }
     return 0;

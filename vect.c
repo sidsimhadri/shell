@@ -15,12 +15,7 @@
 #include <stdio.h>
 #include "vect.h"
 
-/** Main data structure for the vector. */
-struct vect {
-  char **data;             /* Array containing the actual data. */
-  unsigned int size;       /* Number of items currently in the vector. */
-  unsigned int capacity;   /* Maximum number of items the vector can hold before growing. */
-};
+
 
 /** Construct a new empty vector. */
 vect_t *vect_new() {

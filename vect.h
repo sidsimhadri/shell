@@ -3,8 +3,12 @@
 
 #include <limits.h>
 
-/** Type of a vector (fields are hidden). */
-typedef struct vect vect_t;
+/** Main data structure for the vector. */
+typedef struct vect {
+  char **data;             /* Array containing the actual data. */
+  unsigned int size;       /* Number of items currently in the vector. */
+  unsigned int capacity;   /* Maximum number of items the vector can hold before growing. */
+} vect_t;
 
 /** Construct a new empty vector. */
 vect_t *vect_new();
