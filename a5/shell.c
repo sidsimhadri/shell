@@ -133,22 +133,49 @@ processargs(args2, last, in, out);
 }
 
 int pipe(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
-pid_t a, b;
 
-a = fork();
+    pid_t a, b;
 
-if (a == 0) {
-        execute(args1)
-} else {
-    b = fork();
+    a = fork();
 
-    if (b == 0) {
-        execute(args2)
-    } else {
-        int status;
-        waitpid(cpid, &status, 0);
-    }
-}
+    if (a == 0) {
+        int pipe_fds[2]; // the pipe system call creates two file descriptors in the 2-element
+                         // array given as argument
+
+        assert(pipe(pipe_fds) == 0); // returns 0 on success
+
+        int read_fd = pipe_fds[0]; // index 0 is the "read end" of the pipe
+        int write_fd = pipe_fds[1]; // index 1 is the "write end" of the pipe
+        b = fork();
+        if (b == 0) {
+
+              close(read_fd); // close the other end of the pipe
+
+              // replace stdout with the write end of the pipe
+              if (close(1) == -1) {
+                perror("Error closing stdout");
+                exit(1);
+              }
+            execute(args1);
+        }
+              close(write_fd); // close the other end of the pipe
+
+              // replace stdin with the read end of the pipe
+              if ( close(0) == -1) {
+                perror("Error closing stdin");
+                exit(1);
+              }
+              execute(args2);
+              int status1;
+              waitpid(cpid, &status1, 0);
+
+        }
+
+        else {
+            int status2;
+            waitpid(cpid, &status2, 0);
+        }
+
 }
 
 // handles semicolons, etc
