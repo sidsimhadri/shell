@@ -69,7 +69,7 @@ printf("cd\n"
 }
 
 // run the shell's child processes
-int shell(vect_t *args, vect_t *last) {
+int shell(vect_t *args, vect_t *last, char *infile, char *outfile) {
   // if we want to exit the shell then do
   if(strcmp(vect_get(args, 0), "exit") == 0) {
     printf("Bye bye.\n");
@@ -87,14 +87,107 @@ int shell(vect_t *args, vect_t *last) {
   if(strcmp(vect_get(args, 0), "help") == 0) {
     help(args);
   }
-  // otherwise fork the child processes
-  int cpid = fork(); // fork 
+  int cpid = fork(); // fork
+  int in;
+  int out;
   if(cpid) {
-    int status;
-    waitpid(cpid, &status, 0); // wait on the status to finish
-  } else {
+    if(infile) {
+        // Close standard in
+        if (close(0) == -1) {
+          perror("Error closing stdin");
+          exit(1);
+        }
+
+
+        // Open the file for reading
+        in = open(infile, O_RDONLY);
+
+        // The open file should replace standard in
+        assert(in == 0);
+    }
+    if(outfile) {
+        // Close standard out
+        if (close(1) == -1) {
+          perror("Error closing stdout");
+          exit(1);
+        }
+
+        // Create the file, truncate it if it exists
+        out = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+
+        // The open file should replace standard out
+        assert(out == 1);
+    }
+    //i switched execute and waitpid's location
     execute(args); // execute the arguments
+                         // wait on the status to finish
+  } else {
+    int status;
+    waitpid(cpid, &status, 0);
   }
+}
+
+int colon(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
+processargs(args1, last, in, out);
+processargs(args2, last, in, out);
+}
+
+int pipe(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
+pid_t a, b;
+
+a = fork();
+
+if (a == 0) {
+        execute(args1)
+} else {
+    b = fork();
+
+    if (b == 0) {
+        execute(args2)
+    } else {
+        int status;
+        waitpid(cpid, &status, 0);
+    }
+}
+}
+
+// handles semicolons, etc
+void processargs(vect_t *tokens, vect_t *last_args, char *in, char *out) {
+	 vect_t *tmp = vect_new();
+	 vect_t *tmp2 = vect_new();
+	 for(int i = 0; i < vect_size(args); i++) {
+        if(strcmp(vect_get(args, i), "<") == 0) { // if the thing at i is a semi colon
+          processargs(args, last_args, vect_get(args + 1), out);
+          i++;
+        }
+
+        if(strcmp(vect_get(args, i), ">") == 0) { // if the thing at i is a semi colon
+          processargs(args, last_args, in, vect_get(args + 1));
+          i++;
+        }
+	   if(strcmp(vect_get(args, i), ";") == 0) { // if the thing at i is a semi colon
+         vect_add(tmp, vect_get(args, i));
+         colon(tmp, tmp2, last_args, in, out);
+         tmp = NULL;
+       }
+        else {
+	     vect_add(tmp2, vect_get(args, i));
+	   }
+       if(strcmp(vect_get(args, i), "|") == 0) { // if the thing at i is a semi colon
+         vect_add(tmp, vect_get(args, i));
+         pipe(tmp, tmp2, last_args, infile, outfile);
+         tmp = NULL;
+       }
+       else {
+          vect_add(tmp2, vect_get(args, i));
+       }
+
+
+	 }
+     if(tmp != NULL) {
+          shell(tokens, last_args, in, out);
+     }
+
 }
 
 int main(int argc, char **argv) {
@@ -112,29 +205,7 @@ int main(int argc, char **argv) {
          }
          args = tokenize(commands); // tokenize the commands
 
-	// start handling semicolons here
-	
-	 vect_t *tmp = vect_new();
-
-	 for(int i = 0; i < vect_size(args); i++) {
-	   if(strcmp(vect_get(args, i), ";") == 0) { // if the thing at i is a semi colon
-	     shell(tmp, last_args); // run the shell with the commands we have
-	     int j = vect_size(tmp);
-	     while (j != 0) {
-	       vect_remove_last(tmp);
-	       j--;
-	     }
-           }
-       else if(strcmp(vect_get(args, i), "|") == 0) {
-       }
-           else {
-	     vect_add(tmp, vect_get(args, i));
-	   }
-	 }
-
-         // vect_print(last_args);
-        shell(tmp, last_args); // run the shell
-	 last_args = tmp;
+	processargs(args, last_args);
       }
     }
     return 0;
