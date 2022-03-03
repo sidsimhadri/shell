@@ -43,9 +43,16 @@ int source (vect_t *args) {
     char *command;
     char *last = command;
     command = fscanf(f, "%[^\n]", f);
+    int i;
     while (command != 0) {
-        printf("> %s\n", command);
-	    shell(tokenize(command), tokenize(last), NULL, NULL);
+        printf("shell $ %s\n", command);
+        vect_t *read = tokenize(command);
+        i = 0;
+        while (i < vect_size(read)) {
+           vect_set(read, i, strcspn(vect_get(read, i),"\n" ));
+           i++;
+           }
+	    shell(args, tokenize(last), NULL, NULL);
     }
 
     fclose(f);
@@ -276,8 +283,13 @@ int main(int argc, char **argv) {
            exit(0); // exit
          }
          args = tokenize(commands); // tokenize the commands
+         int i = 0;
+          while (i < vect_size(args)) {
+             vect_set(args, i, strcspn(vect_get(args, i),"\n" ));
+             i++;
+             }
 
-	processargs(args, last_args, NULL, NULL);
+	      processargs(args, last_args, NULL, NULL);
       }
     }
     return 0;
