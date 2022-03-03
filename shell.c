@@ -123,7 +123,6 @@ int shell(vect_t *args, vect_t *args2, vect_t *last, char *infile, char *outfile
     }
   }
 }
-
 int piper(vect_t *args1, vect_t *args2, vect_t *last, char *in, char *out) {
     int pipe_fds[2]; // the pipe system call creates two file descriptors in the 2-element
                      // array given as argument
