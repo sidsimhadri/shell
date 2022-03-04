@@ -11,7 +11,7 @@
 #include "tokenizer.h"
 
 #define max 255
-
+int shell(vect_t *args, vect_t *last);
 // executes the vector of arguments
 int execute(vect_t *args) {
   char* arr[vect_size(args)]; // set the size of the array
@@ -45,13 +45,13 @@ int source (vect_t *args) {
         while (1)
         {
             char* c = NULL;
-            while ((c = fgets(line, MAXBUFF, f)) != NULL)
+            while ((c = fgets(line, 255, f)) != NULL)
             {
                 if (line[0] == '\n')
                 {
                     break;
                 }
-                shell(tokenize(args));
+                shell(tokenize(args), NULL);
             }
 
             if (c == NULL)
