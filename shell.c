@@ -37,18 +37,36 @@ int cd (vect_t *args) {
 
 #define linemax 256
 int source (vect_t *args) {
-    FILE *f = fopen(vect_get(args,1), "r");
-    char *command;
-    char *last = command;
-    command = fscanf(f, "%[^\n]", f);
-    while (command != 0) {
-        printf("> %s\n", command);
-	shell(tokenize(command), tokenize(last));
+ FILE* f = fopen(vect_get(args, 0), "r");
+
+    char line[linemax];
+    if (f)
+    {
+        while (1)
+        {
+            char* c = NULL;
+            while ((c = fgets(line, MAXBUFF, f)) != NULL)
+            {
+                if (line[0] == '\n')
+                {
+                    break;
+                }
+                shell(tokenize(args));
+            }
+
+            if (c == NULL)
+                break;
+        }
+
+        fclose(f);
+    }
+    else
+    {
+        printf("file not found");
     }
 
-    fclose(f);
-    exit(EXIT_SUCCESS);
 }
+
 
 int prev (vect_t *args, vect_t *last) {
   shell(last, last);
