@@ -37,7 +37,7 @@ int cd (vect_t *args) {
 
 #define linemax 256
 int source (vect_t *args) {
- FILE* f = fopen(vect_get(args, 0), "r");
+ FILE* f = fopen(vect_get(args, 1), "r");
 
     char line[linemax];
     if (f)
@@ -45,7 +45,7 @@ int source (vect_t *args) {
         while (1)
         {
             char* c = NULL;
-            while ((c = fgets(line, 255, f)) != NULL)
+            while ((c = fgets(line, linemax, f)) != NULL)
             {
                 if (line[0] == '\n')
                 {
